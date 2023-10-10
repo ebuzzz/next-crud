@@ -18,6 +18,7 @@ interface IAdapterCtorArgs<M extends string = string> {
     [key in M]?: string[]
   }
   prismaClient: PrismaClient
+  prisma: Prisma
   models?: M[]
 }
 
@@ -29,6 +30,7 @@ export default class PrismaAdapter<T, M extends string>
     [key in M]?: string[]
   }
   private prismaClient: PrismaClient
+  private prisma: Prisma
   models: M[]
   private _ctorModels: M[]
   private prismaJsonSchemaParser: PrismaJsonSchemaParser
@@ -37,20 +39,22 @@ export default class PrismaAdapter<T, M extends string>
   constructor({
     primaryKey = 'id',
     prismaClient,
+    prisma = Prisma,
     manyRelations = {},
     models,
   }: IAdapterCtorArgs<M>) {
     this.prismaClient = prismaClient
+    this.prisma = prisma
     this.primaryKey = primaryKey
     this.manyRelations = manyRelations
     this._ctorModels = models
   }
 
   getPrismaClientModels = () => {
-    if (Prisma.dmmf) {
+    if (this.prisma.dmmf) {
       // @ts-ignore
-      this.dmmf = Prisma.dmmf
-      return Prisma.dmmf.datamodel.models.map((m) => m.name) as M[]
+      this.dmmf = this.prisma.dmmf
+      return this.prisma.datamodel.models.map((m) => m.name) as M[]
     }
 
     throw new Error(
